@@ -1,0 +1,53 @@
+@import 'core/variables';
+@import 'core/mixins';
+
+.slider-container {
+  background-color: $base-background-colour;
+  height: 340px;
+  padding-top: 30px;
+}
+
+.slider {
+  height: 354px;
+}
+
+.slider-controls {
+  position: relative;
+  top: -279px;
+  right: -525px;
+  width: 430px;
+  color: $font-colour;
+  z-index: 3;
+}
+
+.slider-copy {
+  background-color: $base-foregroud-colour;
+  font-size: 15pt;
+  padding: 15px 10px 15px 10px;
+  text-align: justify;
+}
+
+.slider-nav {
+  margin-top: 5px;
+  left: 60px;
+  position: relative;
+  font-size: 25px;
+}
+
+.slider-nav>span {
+  background-color: $base-foregroud-colour;
+  padding: 10px;
+}
+
+.slider-nav>span:hover {
+  cursor: pointer;
+}
+
+.slider-item--gradient {
+  width: 634px;
+  height: 100%;
+  z-index: 1;
+  position: absolute;
+  top: 0;
+  @include linearGradient(rgba(0,0,0,0), rgba(145,94,125,0.80));
+}

@@ -1,0 +1,29 @@
+@import 'core/variables';
+@import 'core/navigation';
+@import 'core/header';
+@import 'slider';
+@import 'core/list-items';
+
+body {
+  font: $base-font;
+}
+
+h1 {
+  color: $header-font-colour;
+  // padding-top: 35px;
+  padding-bottom: 30px;
+}
+
+.divider {
+  width: 3px;
+  border-right: 2px solid #ebebeb;
+  margin-bottom: -999999px;
+  padding-bottom: 999999px;
+  overflow: hidden;
+  display: none;
+  @media (min-width: $screen-lg-min) { display: block; }
+}
+
+.left-padded-container {
+  padding-left: 50px;
+}

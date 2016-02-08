@@ -1,0 +1,117 @@
+.navigation {
+  text-align: center;
+  font-size: 16px; }
+
+.navigation ul {
+  padding-top: 15px; }
+
+.navigation li {
+  padding-right: 20px; }
+
+.navigation li > span {
+  padding-right: 10px; }
+
+.main-header {
+  background-color: #0d5278;
+  color: #ffffff;
+  padding-top: 15px; }
+
+.main-header a {
+  color: #ffffff; }
+
+.slider-container {
+  background-color: #0d5278;
+  height: 340px;
+  padding-top: 30px; }
+
+.slider {
+  height: 354px; }
+
+.slider-controls {
+  position: relative;
+  top: -279px;
+  right: -525px;
+  width: 430px;
+  color: #ffffff;
+  z-index: 3; }
+
+.slider-copy {
+  background-color: #1491c7;
+  font-size: 15pt;
+  padding: 15px 10px 15px 10px;
+  text-align: justify; }
+
+.slider-nav {
+  margin-top: 5px;
+  left: 60px;
+  position: relative;
+  font-size: 25px; }
+
+.slider-nav > span {
+  background-color: #1491c7;
+  padding: 10px; }
+
+.slider-nav > span:hover {
+  cursor: pointer; }
+
+.slider-item--gradient {
+  width: 634px;
+  height: 100%;
+  z-index: 1;
+  position: absolute;
+  top: 0;
+  background: transparent;
+  /* Old browsers */
+  background: -moz-linear-gradient(left, transparent 0%, rgba(145, 94, 125, 0.8) 100%);
+  /* FF3.6+ */
+  background: -webkit-gradient(linear, left, right, color-stop(0%, transparent), color-stop(100%, rgba(145, 94, 125, 0.8)));
+  /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(left, transparent 0%, rgba(145, 94, 125, 0.8) 100%);
+  /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(left, transparent 0%, rgba(145, 94, 125, 0.8) 100%);
+  /* Opera 11.10+ */
+  background: -ms-linear-gradient(left, transparent 0%, rgba(145, 94, 125, 0.8) 100%);
+  /* IE10+ */
+  background: linear-gradient(to right, transparent 0%, rgba(145, 94, 125, 0.8) 100%);
+  /* W3C */
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#000000', GradientType=0);
+  /* IE6-9 */ }
+
+.grid-item {
+  text-align: center; }
+
+.grid-item a h2 {
+  color: #333;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 22px;
+  text-align: left; }
+
+.grid-item > p {
+  text-align: left; }
+
+.list-items .row {
+  padding-top: 30px; }
+
+body {
+  font: Arial; }
+
+h1 {
+  color: #0b6a93;
+  padding-bottom: 30px; }
+
+.divider {
+  width: 3px;
+  border-right: 2px solid #ebebeb;
+  margin-bottom: -999999px;
+  padding-bottom: 999999px;
+  overflow: hidden;
+  display: none; }
+  @media (min-width: 1200px) {
+    .divider {
+      display: block; } }
+
+.left-padded-container {
+  padding-left: 50px; }
+
+/*# sourceMappingURL=index.css.map */

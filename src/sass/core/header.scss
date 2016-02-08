@@ -1,0 +1,13 @@
+@import 'variables';
+
+$font-colour: #ffffff;
+
+.main-header {
+  background-color: $base-background-colour;
+  color: $font-colour;
+  padding-top: 15px;
+}
+
+.main-header a {
+  color: $font-colour;
+}
