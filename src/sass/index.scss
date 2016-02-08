@@ -3,6 +3,7 @@
 @import 'core/header';
 @import 'slider';
 @import 'core/list-items';
+@import 'modal';
 
 body {
   font: $base-font;
@@ -10,7 +11,6 @@ body {
 
 h1 {
   color: $header-font-colour;
-  // padding-top: 35px;
   padding-bottom: 30px;
 }
 

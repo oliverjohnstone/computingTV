@@ -1,12 +1,12 @@
 module.exports = function initLoginModal () {
   $('.js-login-modal').each(function () {
-    $(this).on('click', function (e) {
-      e.preventDefault()
-      showModal()
-    })
+    initModal($(this))
   })
 
-  function showModal () {
-    alert('Login Modal')
+  function initModal ($el) {
+    $el.click(function (e) {
+      e.preventDefault()
+      $('.js-register-modal').modal()
+    })
   }
 }

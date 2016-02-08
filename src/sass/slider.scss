@@ -12,7 +12,6 @@
 }
 
 .slider-controls {
-  position: relative;
   top: -279px;
   right: -525px;
   width: 430px;
@@ -25,13 +24,19 @@
   font-size: 15pt;
   padding: 15px 10px 15px 10px;
   text-align: justify;
+  position: relative;
+  top: 50px;
+  left: 554px;
+  z-index: 2;
 }
 
 .slider-nav {
   margin-top: 5px;
-  left: 60px;
+  left: 590px;
   position: relative;
   font-size: 25px;
+  top: 50px;
+  z-index: 2;
 }
 
 .slider-nav>span {

@@ -18247,6 +18247,155 @@ return jQuery;
 }));
 
 },{}],20:[function(require,module,exports){
+if (typeof Object.create === 'function') {
+  // implementation from standard node.js 'util' module
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    ctor.prototype = Object.create(superCtor.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+} else {
+  // old school shim for old browsers
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    var TempCtor = function () {}
+    TempCtor.prototype = superCtor.prototype
+    ctor.prototype = new TempCtor()
+    ctor.prototype.constructor = ctor
+  }
+}
+
+},{}],21:[function(require,module,exports){
+module.exports = Paged
+
+var EventEmitter = require('events').EventEmitter
+  , inherits = require('inherits')
+  , transitionFn = $.fn.transition ? 'transition' : 'animate'
+
+/*
+ * Make a tabbed list out of
+ * the given element. Requires
+ * a certain html structure.
+ */
+function Paged(container, sections, nofx) {
+  EventEmitter.call(this)
+  this.container = container
+  this.sections = sections
+  this.current = null
+  this.transitionSpeed = nofx ? 0 : 150
+  this.loop = true
+}
+
+inherits(Paged, EventEmitter)
+
+/*
+ * Set required styles and
+ * go to the first tabbed pane
+ */
+Paged.prototype.init = function () {
+
+  this.container.css({ position: 'relative' })
+  this.sections.css(
+    { display: 'none'
+    , opacity: 0
+    , position: 'absolute'
+    })
+  this.goTo(0, true)
+
+  return this
+
+}
+
+/*
+ * Go to tab number `index`
+ */
+Paged.prototype.goTo = function (index, nofx) {
+
+  // Do no work on invalid input
+  if (index < 0 || index >= this.sections.length) return
+
+  this.emit('change', index)
+
+  if (this.current === index) return
+
+  var section = this.sections.eq(index)
+    , height = section.outerHeight(true)
+
+  this.current = index
+
+  if (this.transitionSpeed > 0 && !nofx) {
+
+    this.sections.not(section)
+      .css({ position: 'absolute' })
+      [transitionFn]({ opacity: 0 }, this.transitionSpeed)
+
+    setTimeout($.proxy(function () {
+      this.sections.each($.proxy(function (i, el) {
+        if (i !== this.current) $(el).css({ display: 'none' })
+      }, this))
+    }, this), this.transitionSpeed)
+
+    this.container[transitionFn]({ height: height }, 100)
+
+    section.css({ opacity: 0, display: 'block' })
+    section[transitionFn]({ opacity: 1 }, this.transitionSpeed)
+
+  } else {
+
+    this.sections.not(section).css({ position: 'absolute', display: 'none' })
+    section.css({ opacity: 1, display: 'block' })
+    this.container.css({ height: height })
+
+  }
+
+  return this
+}
+
+/*
+ * Convenience method for moving to the next section.
+ * Adds loop functionality if `this.loop` is true.
+ */
+Paged.prototype.next = function () {
+  if (this.current === this.sections.length - 1) {
+    if (this.loop) {
+      return this.goTo(0)
+    } else {
+      return
+    }
+  }
+  return this.goTo(this.current + 1)
+}
+
+/*
+ * Convenience method for moving to the previous section.
+ * Adds loop functionality if `this.loop` is true.
+ */
+Paged.prototype.prev = function () {
+  if (this.current === 0) {
+    if (this.loop) {
+      return this.goTo(this.sections.length - 1)
+    } else {
+      return
+    }
+  }
+  return this.goTo(this.current - 1)
+}
+
+/*
+ * Reset the viewport height
+ */
+Paged.prototype.reset = function () {
+  var section = this.sections.eq(this.current)
+    , height = section.outerHeight(true)
+  this.container.css({ height: height })
+}
+},{"events":27,"inherits":20}],22:[function(require,module,exports){
 module.exports = function bootstrap (serviceLocator) {
   var router = new window.Backbone.Router()
 
@@ -18264,21 +18413,23 @@ module.exports = function bootstrap (serviceLocator) {
   Backbone.history.start()
 }
 
-},{"./components/login-modal/init":21,"./components/slider/init":22}],21:[function(require,module,exports){
+},{"./components/login-modal/init":23,"./components/slider/init":24}],23:[function(require,module,exports){
 module.exports = function initLoginModal () {
   $('.js-login-modal').each(function () {
-    $(this).on('click', function (e) {
-      e.preventDefault()
-      showModal()
-    })
+    initModal($(this))
   })
 
-  function showModal () {
-    alert('Login Modal')
+  function initModal ($el) {
+    $el.click(function (e) {
+      e.preventDefault()
+      $('.js-register-modal').modal()
+    })
   }
 }
 
-},{}],22:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
+var Paged = require('paged')
+
 module.exports = function initSlider (serviceLocator) {
   $('.js-slider').each(function () {
     slider($(this))
@@ -18287,13 +18438,33 @@ module.exports = function initSlider (serviceLocator) {
   function slider ($el) {
     var $prevBtn = $el.find('.js-nav-left')
       , $nextBtn = $el.find('.js-nav-right')
+      , $pages = $el.find('.slider-item')
+      , $copyItems = $el.find('.js-copy')
+      , paged = new Paged($el, $pages)
+      , currentPage = 0
 
-    $prevBtn.click(alert.bind(null, 'Prev'))
-    $nextBtn.click(alert.bind(null, 'Next'))
+    $copyItems.hide()
+    $copyItems.eq(currentPage).show()
+
+    paged.init()
+
+    $prevBtn.click(function () {
+      if (--currentPage === -1) currentPage = $pages.length - 1
+      $copyItems.hide()
+      $copyItems.eq(currentPage).show()
+      paged.goTo(currentPage)
+    })
+
+    $nextBtn.click(function () {
+      if (++currentPage === $pages.length) currentPage = 0
+      $copyItems.hide()
+      $copyItems.eq(currentPage).show()
+      paged.goTo(currentPage)
+    })
   }
 }
 
-},{}],23:[function(require,module,exports){
+},{"paged":21}],25:[function(require,module,exports){
 (function (global){
 require('es5-shim/es5-shim')
 require('es5-shim/es5-sham')
@@ -18306,7 +18477,7 @@ require('bootstrap')
 require('./bootstrap')(require('./service-locator')())
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../assets/js/jquery-1.11.3":1,"./bootstrap":20,"./service-locator":24,"backbone":2,"bootstrap":4,"es5-shim/es5-sham":17,"es5-shim/es5-shim":18}],24:[function(require,module,exports){
+},{"../../assets/js/jquery-1.11.3":1,"./bootstrap":22,"./service-locator":26,"backbone":2,"bootstrap":4,"es5-shim/es5-sham":17,"es5-shim/es5-shim":18}],26:[function(require,module,exports){
 module.exports = function createServiceLocator() {
   var self = {}
 
@@ -18329,4 +18500,306 @@ module.exports = function createServiceLocator() {
   return self
 }
 
-},{}]},{},[23])
+},{}],27:[function(require,module,exports){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+function EventEmitter() {
+  this._events = this._events || {};
+  this._maxListeners = this._maxListeners || undefined;
+}
+module.exports = EventEmitter;
+
+// Backwards-compat with node 0.10.x
+EventEmitter.EventEmitter = EventEmitter;
+
+EventEmitter.prototype._events = undefined;
+EventEmitter.prototype._maxListeners = undefined;
+
+// By default EventEmitters will print a warning if more than 10 listeners are
+// added to it. This is a useful default which helps finding memory leaks.
+EventEmitter.defaultMaxListeners = 10;
+
+// Obviously not all Emitters should be limited to 10. This function allows
+// that to be increased. Set to zero for unlimited.
+EventEmitter.prototype.setMaxListeners = function(n) {
+  if (!isNumber(n) || n < 0 || isNaN(n))
+    throw TypeError('n must be a positive number');
+  this._maxListeners = n;
+  return this;
+};
+
+EventEmitter.prototype.emit = function(type) {
+  var er, handler, len, args, i, listeners;
+
+  if (!this._events)
+    this._events = {};
+
+  // If there is no 'error' event listener then throw.
+  if (type === 'error') {
+    if (!this._events.error ||
+        (isObject(this._events.error) && !this._events.error.length)) {
+      er = arguments[1];
+      if (er instanceof Error) {
+        throw er; // Unhandled 'error' event
+      } else {
+        throw TypeError('Uncaught, unspecified "error" event.');
+      }
+      return false;
+    }
+  }
+
+  handler = this._events[type];
+
+  if (isUndefined(handler))
+    return false;
+
+  if (isFunction(handler)) {
+    switch (arguments.length) {
+      // fast cases
+      case 1:
+        handler.call(this);
+        break;
+      case 2:
+        handler.call(this, arguments[1]);
+        break;
+      case 3:
+        handler.call(this, arguments[1], arguments[2]);
+        break;
+      // slower
+      default:
+        len = arguments.length;
+        args = new Array(len - 1);
+        for (i = 1; i < len; i++)
+          args[i - 1] = arguments[i];
+        handler.apply(this, args);
+    }
+  } else if (isObject(handler)) {
+    len = arguments.length;
+    args = new Array(len - 1);
+    for (i = 1; i < len; i++)
+      args[i - 1] = arguments[i];
+
+    listeners = handler.slice();
+    len = listeners.length;
+    for (i = 0; i < len; i++)
+      listeners[i].apply(this, args);
+  }
+
+  return true;
+};
+
+EventEmitter.prototype.addListener = function(type, listener) {
+  var m;
+
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  if (!this._events)
+    this._events = {};
+
+  // To avoid recursion in the case that type === "newListener"! Before
+  // adding it to the listeners, first emit "newListener".
+  if (this._events.newListener)
+    this.emit('newListener', type,
+              isFunction(listener.listener) ?
+              listener.listener : listener);
+
+  if (!this._events[type])
+    // Optimize the case of one listener. Don't need the extra array object.
+    this._events[type] = listener;
+  else if (isObject(this._events[type]))
+    // If we've already got an array, just append.
+    this._events[type].push(listener);
+  else
+    // Adding the second element, need to change to array.
+    this._events[type] = [this._events[type], listener];
+
+  // Check for listener leak
+  if (isObject(this._events[type]) && !this._events[type].warned) {
+    var m;
+    if (!isUndefined(this._maxListeners)) {
+      m = this._maxListeners;
+    } else {
+      m = EventEmitter.defaultMaxListeners;
+    }
+
+    if (m && m > 0 && this._events[type].length > m) {
+      this._events[type].warned = true;
+      console.error('(node) warning: possible EventEmitter memory ' +
+                    'leak detected. %d listeners added. ' +
+                    'Use emitter.setMaxListeners() to increase limit.',
+                    this._events[type].length);
+      console.trace();
+    }
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+EventEmitter.prototype.once = function(type, listener) {
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  var fired = false;
+
+  function g() {
+    this.removeListener(type, g);
+
+    if (!fired) {
+      fired = true;
+      listener.apply(this, arguments);
+    }
+  }
+
+  g.listener = listener;
+  this.on(type, g);
+
+  return this;
+};
+
+// emits a 'removeListener' event iff the listener was removed
+EventEmitter.prototype.removeListener = function(type, listener) {
+  var list, position, length, i;
+
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  if (!this._events || !this._events[type])
+    return this;
+
+  list = this._events[type];
+  length = list.length;
+  position = -1;
+
+  if (list === listener ||
+      (isFunction(list.listener) && list.listener === listener)) {
+    delete this._events[type];
+    if (this._events.removeListener)
+      this.emit('removeListener', type, listener);
+
+  } else if (isObject(list)) {
+    for (i = length; i-- > 0;) {
+      if (list[i] === listener ||
+          (list[i].listener && list[i].listener === listener)) {
+        position = i;
+        break;
+      }
+    }
+
+    if (position < 0)
+      return this;
+
+    if (list.length === 1) {
+      list.length = 0;
+      delete this._events[type];
+    } else {
+      list.splice(position, 1);
+    }
+
+    if (this._events.removeListener)
+      this.emit('removeListener', type, listener);
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.removeAllListeners = function(type) {
+  var key, listeners;
+
+  if (!this._events)
+    return this;
+
+  // not listening for removeListener, no need to emit
+  if (!this._events.removeListener) {
+    if (arguments.length === 0)
+      this._events = {};
+    else if (this._events[type])
+      delete this._events[type];
+    return this;
+  }
+
+  // emit removeListener for all listeners on all events
+  if (arguments.length === 0) {
+    for (key in this._events) {
+      if (key === 'removeListener') continue;
+      this.removeAllListeners(key);
+    }
+    this.removeAllListeners('removeListener');
+    this._events = {};
+    return this;
+  }
+
+  listeners = this._events[type];
+
+  if (isFunction(listeners)) {
+    this.removeListener(type, listeners);
+  } else {
+    // LIFO order
+    while (listeners.length)
+      this.removeListener(type, listeners[listeners.length - 1]);
+  }
+  delete this._events[type];
+
+  return this;
+};
+
+EventEmitter.prototype.listeners = function(type) {
+  var ret;
+  if (!this._events || !this._events[type])
+    ret = [];
+  else if (isFunction(this._events[type]))
+    ret = [this._events[type]];
+  else
+    ret = this._events[type].slice();
+  return ret;
+};
+
+EventEmitter.listenerCount = function(emitter, type) {
+  var ret;
+  if (!emitter._events || !emitter._events[type])
+    ret = 0;
+  else if (isFunction(emitter._events[type]))
+    ret = 1;
+  else
+    ret = emitter._events[type].length;
+  return ret;
+};
+
+function isFunction(arg) {
+  return typeof arg === 'function';
+}
+
+function isNumber(arg) {
+  return typeof arg === 'number';
+}
+
+function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+}
+
+function isUndefined(arg) {
+  return arg === void 0;
+}
+
+},{}]},{},[25])
